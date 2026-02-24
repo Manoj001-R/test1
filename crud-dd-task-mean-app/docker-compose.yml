@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: mongo:7
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    expose:
+      - "27017"
+
+  test-backend:
+    image: flutterflirtcom/test-backend:1.0.0
+    container_name: test-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - ./backend/.env
+    networks:
+      - app-network
+    expose:
+      - "3000"
+
+  frontend:
+    image: flutterflirtcom/test-frontend:1.0.0
+    container_name: frontend
+    restart: unless-stopped
+    networks:
+      - app-network
+    expose:
+      - "80"
+
+  reverse-proxy:
+    image: nginx:stable-alpine
+    container_name: reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - test-backend
+    networks:
+      - app-network
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge

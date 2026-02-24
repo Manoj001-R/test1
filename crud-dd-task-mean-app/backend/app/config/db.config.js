@@ -1,3 +1,3 @@
 module.exports = {
-  url: "mongodb://localhost:27017/dd_db"
+  url: "mongodb+srv://Manoj82704:Manoj14@cluster0.ptvs4sl.mongodb.net/?appName=Cluster0"
 };

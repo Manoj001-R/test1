@@ -1,1 +1,64 @@
+name: Deployment of MongoDb
 
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        
+      - name: Build Docker Images
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest ./crud-dd-task-mean-app/frontend/
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/test-backend:latest ./crud-dd-task-mean-app/backend/
+      - name: Push Docker Images
+        run: |
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/test-backend:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/test
+
+            echo "Creating backend env file..."
+            mkdir -p backend
+            echo "${{ secrets.BACKEND_ENV_FILE }}" > backend/.env
+
+            echo "Stopping containers on key ports..."
+            CONTAINERS=$(docker ps --filter "publish=80" --filter "publish=3000" -q)
+            if [ ! -z "$CONTAINERS" ]; then
+              docker stop $CONTAINERS
+              docker rm $CONTAINERS
+            fi
+
+            echo "Deploying containers..."
+            docker compose down
+            docker system prune -af
+            docker compose up -d --remove-orphans
