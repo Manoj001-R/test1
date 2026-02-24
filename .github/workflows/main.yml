@@ -26,12 +26,13 @@ jobs:
         
       - name: Build Docker Images
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest ./crud-dd-task-mean-app/frontend/
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/test-backend:latest ./crud-dd-task-mean-app/backend/
+          USER=${{ secrets.DOCKER_HUB_USERNAME }}
+          docker build -t $USER/frontend:latest ./crud-dd-task-mean-app/frontend/
+          docker build -t $USER/test-backend:latest ./crud-dd-task-mean-app/backend/
       - name: Push Docker Images
         run: |
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/test-backend:latest
+          docker push $USER/frontend:latest
+          docker push $USER/test-backend:latest
 
   deploy:
     needs: build
