@@ -31,6 +31,7 @@ jobs:
           docker build -t $USER/test-backend:latest ./crud-dd-task-mean-app/backend/
       - name: Push Docker Images
         run: |
+          USER=${{ secrets.DOCKER_HUB_USERNAME }}
           docker push $USER/frontend:latest
           docker push $USER/test-backend:latest
 
