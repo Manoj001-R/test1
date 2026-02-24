@@ -7,8 +7,8 @@ services:
     container_name: mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: Manoj82704
+      MONGO_INITDB_ROOT_PASSWORD: Manoj14
     volumes:
       - mongo-data:/data/db
     networks:
@@ -17,26 +17,20 @@ services:
       - "27017"
 
   test-backend:
-    image: flutterflirtcom/test-backend:1.0.0
+    image: manoj82704/test-backend:latest
     container_name: test-backend
     restart: unless-stopped
     depends_on:
       - db
-    env_file:
-      - ./backend/.env
     networks:
       - app-network
-    expose:
-      - "3000"
 
   frontend:
-    image: flutterflirtcom/test-frontend:1.0.0
+    image: manoj82704/frontend:latest
     container_name: frontend
     restart: unless-stopped
     networks:
       - app-network
-    expose:
-      - "80"
 
   reverse-proxy:
     image: nginx:stable-alpine
